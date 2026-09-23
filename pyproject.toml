@@ -1,0 +1,20 @@
+[project]
+name = "aeronyx-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "fastapi>=0.141.1",
+    "paho-mqtt>=2.1.0",
+    "uvicorn>=0.53.0",
+    "websockets>=17.1",
+]
+
+[project.scripts]
+aeronyx-backend = "aeronyx_backend:main"
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"
