@@ -1,6 +1,6 @@
 from src.aeronyx_backend.mqtt_server import MQTTServer
-from src.aeronyx_backend.sensor_db import get_sensor_data, get_command_data
-from fastapi import FastAPI, WebSocket, HTTPException
+from src.aeronyx_backend.sensor_db import get_sensor_data, get_command_data, get_sensor_value
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 
@@ -24,11 +24,18 @@ async def ping():
         }
     }
 
-@app.get("/sensor_data")
+@app.get("/sensors")
 async def sensor_data():
     return {
         "status": 200,
         "payload": get_sensor_data()
+    }
+
+@app.get("/sensors/{sensor_name}")
+async def sensor_data(sensor_name: str):
+    return {
+        "status": 200,
+        "payload": {"sensor": sensor_name, "value": get_sensor_value(sensor_name)}
     }
 
 @app.get("/command")
@@ -39,7 +46,7 @@ async def command():
     }
 
 @app.websocket("/ws/sensors")
-async def websocket_endpoint(ws: WebSocket):
+async def ws_sensors_general(ws: WebSocket):
     await ws.accept()
     try:
         while True:
@@ -48,12 +55,22 @@ async def websocket_endpoint(ws: WebSocket):
     except:
         pass
 
-@app.websocket("/ws/command")
-async def websocket_endpoint(ws: WebSocket):
+@app.websocket("/ws/sensors/{sensor_name}")
+async def ws_sensor_endpoint(ws: WebSocket, sensor_name: str):
     await ws.accept()
     try:
         while True:
-            await ws.send_json(get_command_data())
+            await ws.send_json({"sensor": sensor_name, "value": get_sensor_value(sensor_name)})
+            await asyncio.sleep(0.5)
+    except WebSocketDisconnect:
+        pass
+
+@app.websocket("/ws/camera")
+async def ws_camera(ws: WebSocket):
+    await ws.accept()
+    try:
+        while True:
+            await ws.send_json({"fps":20})
             await asyncio.sleep(0.5)
     except:
         pass

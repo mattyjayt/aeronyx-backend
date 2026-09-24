@@ -4,15 +4,9 @@ _command_db: dict[str, str] = {}
 def initialize_database() -> None:
     _sensor_db.clear()
     _command_db.clear()
-    # _sensor_db.update({
-    #     "temperature": 0.0,
-    #     "ph": 0.0,
-    # })
 
-    # _command_db.update({
-    #     "cmd": "off",
-    #     "status": "off",
-    # })
+def get_sensor_value(name: str) -> float | None:
+    return _sensor_db.get(name) 
 
 def update_sensor_data(sensor_data: dict[str, float]) -> None:
     _sensor_db.update(sensor_data)
