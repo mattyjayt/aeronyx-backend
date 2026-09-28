@@ -1,4 +1,5 @@
 from src.aeronyx_backend.mqtt_server import MQTTServer
+from src.aeronyx_backend.camera_stats import CameraStats
 from src.aeronyx_backend.sensor_db import get_sensor_data, get_command_data, get_sensor_value
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +15,7 @@ app.add_middleware(
 )
 
 mqtt_server = MQTTServer()
+camera_stats = CameraStats()
 
 @app.get("/ping")
 async def ping():
@@ -70,15 +72,17 @@ async def ws_camera(ws: WebSocket):
     await ws.accept()
     try:
         while True:
-            await ws.send_json({"fps":20})
+            await ws.send_json({"fps": camera_stats.fps})
             await asyncio.sleep(0.5)
-    except:
+    except WebSocketDisconnect:
         pass
 
 @app.on_event("startup")
 async def startup_event():
     await mqtt_server.start()
+    await camera_stats.start()
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    await camera_stats.stop()
     await mqtt_server.stop()
